@@ -72,14 +72,26 @@
 
 
 
-		html, body {
-			height: 100%;
-			margin: 0;
-      padding: 0;
-      font-family: "Roboto", sans-serif;
-		}
+	html, body {
+	 height: 100%;
+	 margin: 0;
+     padding: 0;
+     font-family: "Roboto", sans-serif;
+	}
 
-
+	
+	.intro{
+	background: #eb9466;
+    color: #edeaea;
+	font-weight:bold; 
+	padding:15px; 
+	border:3px solid #B34F19; 
+	margin-top:-2em;
+	margin-bottom:1em; 
+	text-align:center; 
+	font-size:22px; 
+	border-radius:10px;
+	}
 
     .btn {
       background-color: #c2fbd7;
