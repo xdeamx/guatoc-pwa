@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Guatoc - geocoding</title>
+    <!--<script type="module" src=".....app.js"></script>-->
+    <base target="_top">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>Mobile tutorial - Leaflet</title>
+	
+	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> 
+    <link rel="manifest" href="manifest.json" />
+  <style>
+		html, body {
+			height: 100%;
+			margin: 0;
+      padding: 0;
+      font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+		}
+
+    h1{
+      text-align:Center;
+    }
+
+    .logo{
+      width: 100%;
+      text-align: center;;
+    }
+
+    .logo .circle-image {
+     
+        border-radius: 50%; /* Makes the image circular */
+        overflow: hidden; /* Ensures the image stays within the circle */
+    }
+     
+
+      #container {
+          width: 65%;
+          margin: 0 auto;
+      }
+
+      #container #map { 
+        height: 100%; 
+        width: 100vw; 
+      }
+
+      #container .leaflet-container {
+            height: 400px;
+            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+          }
+
+          #container .addInformation{
+            cursor:pointer;
+            color:blue;
+          }
+
+          #container #form{
+            display: block;
+            /* background: gray; */
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            width: 97%;
+            margin-top: 1em;
+          }
+
+          #container #form label{
+            width: 100%;
+            word-break: normal;
+            display: inline-block;
+          }
+
+          #container #form textarea{
+            width: 100%;
+          }
+
+          #container #form .send-class{
+            background: green;
+            color: white;
+            border-radius: 10px;
+            padding: 3px;
+          }
+          
+
+            /* Basic styling for the timeline */
+            #container  .timeline {
+              list-style-type: none;
+              padding: 0;
+              position: relative;
+          }
+
+          #container .timeline li {
+              display: flex;
+              margin-bottom: 20px;
+              width:100%;          
+            }
+
+          #container .timeline li::before {
+              content: "";
+              width: 25px;
+              height: 25px;
+              background-color: #007bff;
+              border-radius: 50%;
+              margin-right: 20px;
+              align-self: center;
+          }
+
+          #container .timeline li div {
+              background-color: #f4f4f4;
+              padding: 10px;
+              border-radius: 5px;
+              width:100%;
+          }
+
+          #container .timeline .img-timeline{
+            max-width:400px;
+          }
+
+      /* Responsive styles for smaller screens */
+      @media screen and (max-width: 768px) {
+        #container {
+              width: 90%;
+          }
+        #container .timeline li::before {
+          display: none;
+        }
+
+        #container .timeline .img-timeline {
+            max-width: 100%;
+        }
+         
+      }
+
+      /* Responsive styles for even smaller screens */
+      @media screen and (max-width: 480px) {
+        #container {
+              width: 95%;
+          }
+
+          #container .timeline li::before {
+          display: none;
+        }
+
+        #container .timeline .img-timeline {
+            max-width: 100%;
+        }
+      }
+
+
+		
+
+	</style>
+
+	
+  </head>
+  <body>
+    <div id="container">
+      <h1>Geolozalización de evidencias Guatoc</h1>
+      <div class="logo">
+        <img src="guatoc_logo.jpeg" class="circle-image "></img>
+      </div>
+      <div id="location">
+
+      </div>
+
+        <div id="app"></div>
+        
+        
+        <div id="form" style="display:none">
+          <h2>Asociar evidencia geolocalizada</h2>
+          <form action="process.php" method="post" enctype="multipart/form-data">
+              <label for="description">Descripcion del avance:</label>
+              <textarea rows="3" name="description" required></textarea>
+              <label for="image">Adjuntar evidencia:</label>
+              <input type="file" name="image" id="image" required>
+              <input type="hidden" name="latitude" id="latitude">
+              <input type="hidden" name="longitude" id="longitude">
+              <p>
+                <button type="submit" name="submit" class="send-class">Registrar evidencia</button>
+              </p>
+             
+          </form>
+        </div>
+
+        <div id="data-list" style="display:none_">
+        <ul class="timeline" id="timeline">
+          <!-- Timeline items will be added dynamically using JavaScript -->
+        </ul>
+      </div>
+    </div>  
+    <script>
+
+
+// Registro del Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(function(registration) {
+        console.log('Service Worker registrado con éxito:', registration);
+      })
+      .catch(function(error) {
+        console.log('Error al registrar el Service Worker:', error);
+      });
+  });
+}
+
+
+
+$( document ).ready(function() {
+
+      const map = L.map('app').fitWorld();
+       globalLatitude = null;
+       globalLongitude  = null;
+    // Function to get the current location
+    function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else {
+                document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        // Function to display the current position
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+            globalLatitude = position.coords.latitude;
+            globalLongitude = position.coords.longitude;
+            document.getElementById("location").innerHTML = "Las coordenadas de su ubicacion actual son Latitud: " + latitude +"y Longitud: " + longitude;
+            const locationMarker = L.marker([latitude,longitude]).addTo(map)
+         .bindPopup(`current position <span class="addInformation" data-latitude="`+latitude+`" data-longitude="`+longitude+`"> Agregar evidencia</span>`).openPopup();
+       
+         $.getJSON("data.json?value="+Date.now(), function(data) {
+        // Display JSON data on the page
+        var jsonData = JSON.stringify(data, null, 2); // Convert JSON object to formatted string
+        console.log(data);
+         data = Object.keys(data).map(key => data[key]);
+        timelineData = [];
+        var tolerance = 0.1; // Tolerance range in degrees
+        for(var i=0; i < data.length; i++){
+          if(isInTolerance(data[i].latitude, data[i].longitude, globalLatitude, globalLongitude, tolerance)){
+            timelineData.push({
+            date: data[i].date,
+            event: data[i].image,
+            description: data[i].description,
+          })
+          }
+          
+        }
+
+
+          // Call the function to create timeline items
+    createTimelineItems();
+    });
+       
+        }
+
+        function isInTolerance(latitude, longitude, referenceLatitude, referenceLongitude, tolerance) {
+          // Calculate the differences between the coordinates and the reference point
+          var latitudeDiff = Math.abs(latitude - referenceLatitude);
+          var longitudeDiff = Math.abs(longitude - referenceLongitude);
+          
+          // Check if both differences are within the tolerance range
+          return latitudeDiff <= tolerance && longitudeDiff <= tolerance;
+      }
+
+        // Call the function to get the current location
+        getLocation();
+
+      
+    
+      const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+    
+      function onLocationFound(e) {
+        const radius = e.accuracy / 2;
+    
+        //const locationMarker = L.marker(e.latlng).addTo(map)
+        //  .bindPopup(`You are within ${radius} meters from this point`).openPopup();
+    
+       // const locationCircle = L.circle(e.latlng, radius).addTo(map);
+      }
+    
+      function onLocationError(e) {
+        alert(e.message);
+      }
+    
+      map.on('locationfound', onLocationFound);
+      map.on('locationerror', onLocationError);
+    
+      map.locate({setView: true, maxZoom: 16});
+
+      $(document).on( "click", ".addInformation", function(){
+        console.log("agregar...");
+        $("#form").css("display","block");
+
+        var latitude = this.getAttribute("data-latitude");
+        var longitude = this.getAttribute("data-longitude");
+
+        $("#latitude").val(latitude);
+        $("#longitude").val(longitude);
+      } );
+    });
+
+  
+
+
+
+    // Function to create timeline items
+    function createTimelineItems() {
+        var timeline = document.getElementById('timeline');
+        timeline.innerHTML = ''; // Clear existing content
+        
+        timelineData.forEach(function(item) {
+            var li = document.createElement('li');
+            li.innerHTML = '<div><strong>' + item.date + '</strong><p>'+item.description+'</p><p><img src="uploads/' + item.event + '" class="img-timeline"></img></p></div>';
+            timeline.appendChild(li);
+        });
+    }
+
+  
+
+
+
+    </script>
+  </body>
+
+</html>
