@@ -10,7 +10,7 @@ Proyecto para la comunidad de Choachí Cundinamarca donde los usuarios geolocali
   <li>Operación offline y sincronización con el servidor</li>
 </ul>
 
-<h2>TECNOLOGIA</h2>
+<h2>TECNOLOGÍA</h2>
 <ul>
   <li>HTML 5 / CSS3 </li>
   <li>Javascript / jQuery /JSON</li>
@@ -23,3 +23,9 @@ Proyecto para la comunidad de Choachí Cundinamarca donde los usuarios geolocali
 
 <h2>DESPLIEGUE</h2>
 <a href="https://xdeamx.com/guatoc/" target="_blank">https://xdeamx.com/guatoc/</a>
+
+<h2>REQUERIMIENTOS EN EL CLIENTE</h2>
+<ul>
+  <li>Navegador web </li>
+  <li>Habilitar geolocalización</li>
+</ul>
