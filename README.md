@@ -12,8 +12,8 @@ Proyecto para la comunidad de Choachí Cundinamarca donde los usuarios geolocali
 
 <h2>TECNOLOGÍA</h2>
 <ul>
-  <li>HTML 5 / CSS3 </li>
-  <li>Javascript / jQuery /JSON</li>
+  <li>HTML5 / CSS3</li>
+  <li>JavaScript / jQuery / JSON</li>
   <li>PHP</li>
 </ul>
 <h2>WIREFRAMES</h2>
